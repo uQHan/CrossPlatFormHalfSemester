@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Share } from "@capacitor/share";
 import { Screenshot } from 'capacitor-screenshot';
@@ -9,19 +9,19 @@ import Head from "next/head";
 export default function Home() {
   const [localTime, setLocalTime] = useState("");
 
+  useEffect(() => {
+    const requestPermission = async () => {
+      const { granted } = await LocalNotifications.requestPermissions();
+      if (!granted) {
+        console.error("Notification permission not granted!");
+      }
+    };
+    requestPermission();
+  }, []);
+
   const handleShowTime = () => {
     const currentTime = new Date().toLocaleTimeString();
     setLocalTime(currentTime);
-
-    useEffect(() => {
-      const requestPermission = async () => {
-        const { granted } = await LocalNotifications.requestPermissions();
-        if (!granted) {
-          console.error("Notification permission not granted!");
-        }
-      };
-      requestPermission();
-    }, []);
 
     LocalNotifications.schedule({
       notifications: [
@@ -45,13 +45,8 @@ export default function Home() {
   };
 
   const handleScreenshot = async () => {
-    try {
-      const result = await Screenshot.take();
-      console.log("Screenshot captured:", result.path);
-      alert("Screenshot captured! Check your gallery or file system.");
-    } catch (error) {
-      console.error("Failed to capture screenshot:", error);
-    }
+    const { uri } = await Screenshot.take();
+    console.log('Screenshot saved at:', uri);
   };
 
   return (
